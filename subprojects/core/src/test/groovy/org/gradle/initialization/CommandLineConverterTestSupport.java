@@ -95,7 +95,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedProfile, startParameter.isProfile());
         assertEquals(expectedContinue, startParameter.isContinueOnFailure());
         assertEquals(expectedOffline, startParameter.isOffline());
-        assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
         assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());

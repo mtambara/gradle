@@ -192,6 +192,10 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
+### Removed command-line options
+
+- The `--recompile-scripts` command-line option that forced recompilation of build scripts has been removed.
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
