@@ -65,6 +65,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::isCrossBuild).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getRegressionSortKey).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getRegressionPercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -80,6 +81,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         } else {
             scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(Collectors.toList()));
         }
+
+        scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 
         return scenario;
     }
@@ -163,7 +166,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 }
             }
 
-            private String getTextColorCss(ScenarioBuildResultData.ExecutionData executionData) {
+            private String getTextColorCss(ScenarioBuildResultData scenario, ScenarioBuildResultData.ExecutionData executionData) {
+                if(scenario.isCrossBuild()) {
+                    return "text-dark";
+                }
+
                 if (executionData.confidentToSayBetter()) {
                     return "text-success";
                 } else if (executionData.confidentToSayWorse()) {
@@ -182,6 +189,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 big().text(scenario.getScenarioName()).end();
                                 if(scenario.isFromCache()) {
                                     span().classAttr("badge badge-info").title("The test is not really executed - its results are fetched from build cache.").text("FROM-CACHE").end();
+                                }
+                                if(scenario.isCrossBuild()) {
+                                    span().classAttr("badge badge-info").title("This scenario is comparing two builds' performance difference, not versions'. Therefore, it's not seen as regression.").text("CROSS-BUILD").end();
                                 }
                                 if(scenario.isBuildFailed()) {
                                     span().classAttr("badge badge-danger").title("The build failed and doesn't generate any execution data.").text("FAILED").end();
@@ -204,8 +214,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 } else {
                                     scenario.getExecutionsToDisplayInRow().forEach(execution -> {
                                         div().classAttr("row");
-                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
-                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
+                                        div().classAttr("col " + getTextColorCss(scenario, execution)).text(execution.getFormattedRegression()).end();
+                                        div().classAttr("col " + getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                                         end();
                                     });
                                 }
@@ -245,8 +255,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
-                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
-                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
+                            td().classAttr(getTextColorCss(scenario, execution)).text(execution.getFormattedRegression()).end();
+                            td().classAttr(getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                         end();
                 });
                 end();
