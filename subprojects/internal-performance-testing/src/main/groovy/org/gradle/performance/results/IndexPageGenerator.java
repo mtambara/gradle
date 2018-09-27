@@ -174,7 +174,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario));
+                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).id("scenario" + index).onclick("window.location.hash='scenario" + index + "'");
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center");
                             div().classAttr("col").text(String.valueOf(index)).end();
