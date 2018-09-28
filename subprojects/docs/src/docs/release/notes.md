@@ -192,6 +192,28 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
+### Configuration Avoidance API disallows common configuration errors
+
+The [configuration avoidance API](userguide/task_configuration_avoidance.html) introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+
+With the existing API, this example adds two tasks (`foo` and `bar`):
+```
+tasks.create("foo") {
+    tasks.create("bar")
+}
+```
+
+When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary, 
+so the `register()` for task `bar` only executes when `foo` is configured. 
+
+```
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+```
+
+To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create` or `register`) when using the new API. 
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
@@ -302,6 +324,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 
 The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
 
+### Invalid project and domain object names are no longer supported
+
+Previously, it was deprecated for project and domain object names to be empty, start or end with `.` or contain any of the following characters: `/\:<>"?*|`.
+The use of such names now causes the build to fail.
+
 ### Annotation processors on the compile classpath are now ignored
 
 Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
@@ -331,6 +358,7 @@ Please add them to the [annotation processor path](userguide/java_plugin.html#ex
 - Removed the property `testClassesDir` from `Test`.
 - Removed the property `classesDir` from `SourceSetOutput`.
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
+- Removed `ConfigurableReport.setDestination(Object)`
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
@@ -344,6 +372,10 @@ Please add them to the [annotation processor path](userguide/java_plugin.html#ex
 - `EarPluginConvention` is now abstract.
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
+
+### Removal of deprecated CLI options
+
+- Removed `--no-search-upward` (`-u`) option.
 
 ### Implicit imports for internal classes have been removed
 
@@ -373,6 +405,11 @@ The full list of built-in tasks that cannot be replaced:
 - Removed the internal class `SimpleFileCollection`.
 - Removed the internal class `SimpleWorkResult`.
 - Removed the internal method `getAddAction` from `BroadcastingCollectionEventRegister`.
+
+### Gradle TestKit will search upwards for `settings.gradle`
+
+When invoking a build, Gradle TestKit now behaves like a regular Gradle invocation, and will search upwards for a `settings.gradle` file that defines the build. 
+Please ensure that all builds being executed with Gradle TestKit define `settings.gradle`, even if this is an empty file.
 
 ## External contributions
 
